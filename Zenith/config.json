@@ -1,0 +1,13 @@
+{
+  "name": "Idling Monitor (Zenith)",
+  "supportEmail": "francis@directt.co.nz",
+  "version": "2.0.0",
+  "items": [
+    {
+      "url": "https://YOUR-HOST/idling-addin-zenith/idlingmonitor.html",
+      "path": "ActivityLink/",
+      "menuName": { "en": "Idling monitor" }
+    }
+  ],
+  "isSigned": false
+}
