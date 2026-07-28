@@ -1,0 +1,15 @@
+{
+  "name": "Idling Monitor",
+  "supportEmail": "francis@directt.co.nz",
+  "version": "1.0.0",
+  "items": [
+    {
+      "url": "https://YOUR-HOST/idling-addin/idlingmonitor.html",
+      "path": "ActivityLink/",
+      "menuName": {
+        "en": "Idling monitor"
+      }
+    }
+  ],
+  "isSigned": false
+}
