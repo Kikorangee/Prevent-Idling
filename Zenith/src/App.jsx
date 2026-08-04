@@ -58,13 +58,6 @@ export default function App({ api: initialApi, registerFocus }) {
   const [names, setNames] = useState({ device: {}, driver: {} });
   const [events, setEvents] = useState([]);
   const [positions, setPositions] = useState({});
-  const [speeding, setSpeeding] = useState({});
-  const [speedLimit, setSpeedLimit] = useState("100");
-  const [overspeed, setOverspeed] = useState("5");
-  const [speedDuration, setSpeedDuration] = useState("30");
-  const spellsRef = useRef({});
-  const postedRef = useRef({});
-  const speedCfgRef = useRef({ fallback: 100, margin: 5, durMs: 30000 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshedAt, setRefreshedAt] = useState(null);
@@ -85,85 +78,17 @@ export default function App({ api: initialApi, registerFocus }) {
     setNames({ device, driver });
   }, []);
 
-  const evaluateSpeeding = useCallback(pos => {
-    const { fallback, margin, durMs } = speedCfgRef.current;
-    const spells = spellsRef.current;
-    const posted = postedRef.current;
-    const nowMs = Date.now();
-    const flagged = {};
-    Object.entries(pos).forEach(([id, p]) => {
-      const pr = posted[id];
-      const knownPosted = pr && nowMs - pr.atMs < 5 * 60000 ? pr.limit : null;
-      const effLimit = knownPosted !== null
-        ? knownPosted + margin
-        : (fallback > 0 ? fallback : null);
-      if (effLimit !== null && p.speed >= effLimit) {
-        if (!spells[id]) spells[id] = nowMs;
-        if (nowMs - spells[id] >= durMs) {
-          flagged[id] = { speed: p.speed, sinceMs: spells[id], posted: knownPosted, effLimit };
-        }
-      } else {
-        delete spells[id];
-      }
-    });
-    setSpeeding(flagged);
-  }, []);
-
-  const applyStatusInfos = useCallback(async statusInfos => {
+  const applyStatusInfos = useCallback(statusInfos => {
     const pos = {};
     (statusInfos || []).forEach(si => {
       if (si.device && typeof si.latitude === "number" &&
           !(si.latitude === 0 && si.longitude === 0)) {
-        pos[si.device.id] = { lat: si.latitude, lon: si.longitude, speed: si.speed || 0, driving: !!si.isDriving };
+        pos[si.device.id] = { lat: si.latitude, lon: si.longitude, driving: !!si.isDriving };
       }
     });
     setPositions(pos);
 
-    // fetch posted road limits for vehicles moving fast enough to matter
-    const candidates = Object.entries(pos)
-      .filter(([, p]) => p.driving && p.speed >= 40)
-      .map(([id]) => id);
-    if (candidates.length) {
-      try {
-        const to = new Date();
-        const from = new Date(to.getTime() - 3 * 60000);
-        const calls = candidates.map(id => ["GetRoadMaxSpeeds", {
-          deviceSearch: { id },
-          fromDate: from.toISOString(),
-          toDate: to.toISOString()
-        }]);
-        const results = await apiMultiCall(apiRef.current, calls);
-        const nowMs = Date.now();
-        results.forEach((points, i) => {
-          const known = (points || []).filter(pt => pt && pt.v !== -1);
-          if (known.length) {
-            postedRef.current[candidates[i]] = { limit: known[known.length - 1].v, atMs: nowMs };
-          }
-        });
-      } catch (e) { /* posted limits unavailable this poll; fallback applies */ }
-    }
-
-    evaluateSpeeding(pos);
-  }, [evaluateSpeeding]);
-
-  useEffect(() => {
-    speedCfgRef.current = {
-      fallback: parseFloat(speedLimit) || 0,
-      margin: parseFloat(overspeed) || 0,
-      durMs: (parseInt(speedDuration, 10) || 0) * 1000
-    };
-    spellsRef.current = {};
-    setSpeeding({});
-  }, [speedLimit, overspeed, speedDuration]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      apiCall(apiRef.current, "Get", { typeName: "DeviceStatusInfo" })
-        .then(applyStatusInfos)
-        .catch(() => {});
-    }, 20000);
-    return () => clearInterval(timer);
-  }, [applyStatusInfos]);
+  }, []);
 
   const loadEvents = useCallback(async () => {
     const api = apiRef.current;
@@ -421,14 +346,7 @@ export default function App({ api: initialApi, registerFocus }) {
         minMin={minMin}
         lph={lph}
         ppl={ppl}
-        speeding={speeding}
         deviceNames={names.device}
-        speedLimit={speedLimit}
-        setSpeedLimit={setSpeedLimit}
-        overspeed={overspeed}
-        setOverspeed={setOverspeed}
-        speedDuration={speedDuration}
-        setSpeedDuration={setSpeedDuration}
       />
 
       <h3 style={{ margin: "0 0 8px", fontSize: 15 }}>
