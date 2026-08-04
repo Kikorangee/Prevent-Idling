@@ -6,72 +6,7 @@
   <link rel="stylesheet" href="idlingmonitor.css">
 </head>
 <body>
-  <div id="idm-root" class="idm">
-
-    <div class="idm-toolbar">
-      <label>Rule
-        <select id="idm-rule"></select>
-      </label>
-      <label>Period
-        <select id="idm-range">
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90" selected>Last 90 days</option>
-        </select>
-      </label>
-      <label>Min event
-        <select id="idm-min">
-          <option value="0" selected>Any duration</option>
-          <option value="5">≥ 5 min</option>
-          <option value="15">≥ 15 min</option>
-          <option value="30">≥ 30 min</option>
-        </select>
-      </label>
-      <label>Fuel L/h
-        <input id="idm-lph" type="number" min="0" step="0.5" value="3">
-      </label>
-      <label>$ / L
-        <input id="idm-ppl" type="number" min="0" step="0.05" value="1.90">
-      </label>
-      <button id="idm-refresh" class="idm-btn idm-btn-primary">Refresh</button>
-      <button id="idm-export" class="idm-btn">Export CSV</button>
-    </div>
-
-    <div id="idm-status" class="idm-status">Loading…</div>
-
-    <div class="idm-kpis">
-      <div class="idm-kpi"><div class="idm-kpi-label">Idle hours</div><div class="idm-kpi-value" id="k-hours">–</div></div>
-      <div class="idm-kpi"><div class="idm-kpi-label">Events</div><div class="idm-kpi-value" id="k-events">–</div></div>
-      <div class="idm-kpi"><div class="idm-kpi-label">Vehicles</div><div class="idm-kpi-value" id="k-vehicles">–</div></div>
-      <div class="idm-kpi"><div class="idm-kpi-label">Avg / event</div><div class="idm-kpi-value" id="k-avg">–</div></div>
-      <div class="idm-kpi idm-kpi-cost"><div class="idm-kpi-label">Est. fuel cost</div><div class="idm-kpi-value" id="k-cost">–</div></div>
-    </div>
-
-    <div class="idm-panel">
-      <h3>Idle hours by week</h3>
-      <div id="idm-trend" class="idm-trend"></div>
-    </div>
-
-    <div class="idm-panel">
-      <h3>Vehicles ranked by idle hours</h3>
-      <div class="idm-tablewrap">
-        <table class="idm-table" id="idm-table">
-          <thead>
-            <tr>
-              <th data-sort="name">Vehicle</th>
-              <th data-sort="events" class="num">Events</th>
-              <th data-sort="hours" class="num">Hours</th>
-              <th data-sort="avg" class="num">Avg min/event</th>
-              <th data-sort="cost" class="num">Est. cost</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
+  <div id="idm-root"></div>
   <script src="idlingmonitor.js"></script>
 </body>
 </html>
