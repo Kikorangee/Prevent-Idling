@@ -21,6 +21,7 @@ export default function MapPanel({
   const userMoved = useRef(false);
   const [dotsLoading, setDotsLoading] = useState(false);
   const [dotsInfo, setDotsInfo] = useState(null);
+  const [mapError, setMapError] = useState(null);
 
   useEffect(() => {
     if (mapRef.current || !mapEl.current) return;
@@ -34,11 +35,23 @@ export default function MapPanel({
       dotLayer.current = L.layerGroup().addTo(map);
       map.on("dragstart zoomstart", () => { userMoved.current = true; });
       mapRef.current = map;
-    } catch {
-      // non-browser environment; leave map unmounted
+      const resizeMap = () => map.invalidateSize({ pan: false });
+      requestAnimationFrame(resizeMap);
+      setTimeout(resizeMap, 250);
+      const observer = typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(resizeMap)
+        : null;
+      if (observer) observer.observe(mapEl.current);
+      map._idmResizeObserver = observer;
+    } catch (err) {
+      setMapError("Map could not start: " + (err && err.message ? err.message : String(err)));
     }
     return () => {
-      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+      if (mapRef.current) {
+        if (mapRef.current._idmResizeObserver) mapRef.current._idmResizeObserver.disconnect();
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, []);
 
@@ -168,6 +181,7 @@ export default function MapPanel({
         <span><i style={dotStyle(SEVERITY.low)} /> Lower</span>
         <span><i style={dotStyle("#d32f2f", true)} /> Individual idle events</span>
       </div>
+      {mapError && <p style={{ color: "#d32f2f", fontSize: 13 }}>{mapError}</p>}
       <div ref={mapEl} style={{ height: 680, borderRadius: 6, border: "1px solid #dfe4e9", background: "#e8ecef" }} />
     </div>
   );
