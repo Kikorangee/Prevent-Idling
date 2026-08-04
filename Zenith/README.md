@@ -2,26 +2,17 @@
 
 The Idling Monitor rebuilt in React with Geotab's official **Zenith** component library (`@geotab/zenith` 3.12), so it matches MyGeotab's current look — plus a **driver dimension**.
 
-## What's new in v2.3 — posted-limit overspeed detection
+## What's new in v2.3 — idling-only event map
 
-- **Speeding now triggers on an overspeed margin above the road's posted speed limit**, not a single fixed number. Each 20 s poll calls `GetRoadMaxSpeeds` (Geotab's road-network data) for vehicles driving ≥ 40 km/h, caching the latest known posted limit per vehicle for 5 minutes. A vehicle flashes red once it's been at or above **posted limit + overspeed margin** for the configured duration.
-- **New "Overspeed by (km/h)" box** (default 5) sets that margin — e.g. margin 5 means 56 km/h in a 50 zone triggers, 54 doesn't.
-- The absolute limit box remains as **"Fallback limit (km/h)"** — used only when no posted limit is known for the road (Geotab returns −1 off the mapped network, and the cache expires after 5 min).
-- Popups distinguish the two: "SPEEDING — 92 km/h (80 zone +12 km/h, trigger 85)" vs "limit unknown — fallback 100 km/h".
-- **Map enlarged to 680 px** tall.
-- Verified by 11 smoke-test checks plus 9 unit tests of the trigger semantics (margin arithmetic, fallback path, duration gate, instant clearing, stale-cache fallback).
-
-## What's new in v2.2 — live speeding layer
-
-- **Speeding detection on the map**: the add-in polls `DeviceStatusInfo` every 20 seconds and tracks each vehicle's continuous time over the speed limit. Once a vehicle has been over the limit for the configured duration, its marker **flashes red** (CSS animation) and it appears on the map even if it has no idling events. A red "N vehicles speeding now" banner shows above the map while any are active.
-- **Two user-configurable thresholds** in the map header: **Speed limit (km/h)** (default 100) and **For at least (s)** (default 30). Changing either resets in-progress spells so stale state can't cause false flags.
-- Speeding popups show current speed, the configured limit, and how long the vehicle has been over. The spell state machine: over-limit starts a timer → flagged once continuous time ≥ duration → dropping under the limit clears it immediately and resets the timer.
-- Detection granularity equals the 20 s poll interval — a vehicle that briefly dips under the limit between polls will appear continuous. For enforcement-grade duration you'd use an `ExceptionEvent` speeding rule; this layer is for live situational awareness.
+- Removed the live-speeding controls, detection state, polling, road-speed lookups, markers, and messaging.
+- The **Load event locations** action now loads every idling exception that matches the selected minimum-duration filter, in API-safe batches of 50.
+- Events sharing the same GPS coordinates are slightly separated on the map so each exception remains clickable.
+- The map remains 680 px tall.
 
 ## What's new in v2.1
 
 - **"Where it's happening" map** (Leaflet + OpenStreetMap, bundled): every vehicle with idling events in the selected period is plotted at its current position, coloured by severity relative to the worst offender (red ≥66%, amber ≥33%, green below; red markers drawn larger). Popups show idle hours, event count, estimated cost, and driving state. Markers respect the period/rule/min-duration filters and refresh with the data.
-- **"Load event locations" button**: on demand, plots the actual locations of individual idle events for the top 5 vehicles (events ≥15 min, capped at 150 LogRecord lookups in one multiCall) as small red dots — shows exactly which yards, depots, or sites the idling happens at. Loaded lazily so the page stays fast; a Clear button removes them.
+- **"Load event locations" button**: on demand, plots every individual idle event matching the selected minimum duration. Requests are batched to protect the API, progress is displayed while loading, and a Clear button removes the dots.
 
 ## What's new over v1
 
